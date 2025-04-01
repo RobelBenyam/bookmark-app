@@ -1,0 +1,23 @@
+{
+  "name": "bookmark-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev --workspace=@bookmark-app/server",
+    "dev:client": "npm run dev --workspace=@bookmark-app/client",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "A full-stack bookmarking application",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
