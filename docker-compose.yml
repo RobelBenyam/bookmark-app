@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: bookmark_user
+      POSTGRES_PASSWORD: bookmark_password
+      POSTGRES_DB: bookmark_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./packages/server
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://bookmark_user:bookmark_password@postgres:5432/bookmark_app
+      JWT_SECRET: your-secret-key
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  client:
+    build:
+      context: ./packages/client
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+
+volumes:
+  postgres_data: 
