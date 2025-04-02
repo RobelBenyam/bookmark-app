@@ -63,7 +63,7 @@ npm install
 ```bash
 # In packages/server/.env
 DATABASE_URL="postgresql://user:password@localhost:5432/bookmark_app"
-JWT_SECRET="your-secret-key"
+JWT_SECRET="bookmark-app-dev-secret-2024"  # For development only. Use a strong random secret in production.
 
 # In packages/client/.env
 VITE_API_URL="http://localhost:3000"
