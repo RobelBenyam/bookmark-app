@@ -1,10 +1,11 @@
 # Bookmark App
 
-A full-stack bookmarking application built with Node.js, Express, TypeScript, React, and Prisma.
+A full-stack bookmarking application built with Node.js, Express, TypeScript, React, and Prisma. This project was built as a technical challenge to demonstrate full-stack development skills.
 
 ## Features
 
-- User authentication (register/login)
+### Core Features
+- User authentication (register/login) with JWT
 - Create, read, update, and delete bookmarks
 - Add tags to bookmarks
 - Search and filter bookmarks by title, URL, or tags
@@ -13,14 +14,26 @@ A full-stack bookmarking application built with Node.js, Express, TypeScript, Re
 - TypeScript for type safety
 - Docker support for easy deployment
 
+### Bonus Features Implemented
+- User Authentication with JWT
+- Tag Management System
+- Search and Filtering
+- Pagination
+- Edit Functionality
+- Client-side Routing
+- Improved UX with Loading States and Optimistic Updates
+- Testing (Backend API tests with Jest & Supertest)
+- Dockerization with Nginx for frontend
+
 ## Tech Stack
 
 ### Backend
 - Node.js with Express
 - TypeScript
-- Prisma ORM
-- PostgreSQL database
+- Prisma ORM with SQLite (development) / PostgreSQL (production)
 - JWT authentication
+- Jest & Supertest for testing
+- Zod for input validation
 
 ### Frontend
 - React with TypeScript
@@ -28,20 +41,34 @@ A full-stack bookmarking application built with Node.js, Express, TypeScript, Re
 - Chakra UI for components
 - React Router for navigation
 - Axios for API calls
+- Vitest for testing
+
+## Project Structure
+```
+bookmark-app/
+├── packages/
+│   ├── client/     # React frontend
+│   │   ├── src/    # Source code
+│   │   └── nginx.conf  # Nginx configuration for production
+│   └── server/     # Express backend
+│       ├── src/    # Source code
+│       └── prisma/ # Database schema and migrations
+├── docker-compose.yml
+└── package.json
+```
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js (v14 or higher)
-- Docker and Docker Compose
-- PostgreSQL (if not using Docker)
+- Docker and Docker Compose (optional)
+- SQLite (included with Node.js)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/bookmark-app.git
+git clone https://github.com/RobelBenyam/bookmark-app.git
 cd bookmark-app
 ```
 
@@ -62,18 +89,16 @@ npm install
 3. Set up environment variables:
 ```bash
 # In packages/server/.env
-DATABASE_URL="postgresql://user:password@localhost:5432/bookmark_app"
+DATABASE_URL="file:./dev.db"
+PORT=3002
 JWT_SECRET="bookmark-app-dev-secret-2024"  # For development only. Use a strong random secret in production.
 
 # In packages/client/.env
-VITE_API_URL="http://localhost:3000"
+VITE_API_URL="http://localhost:3002"
 ```
 
 4. Start the development servers:
 ```bash
-# Start the database (if using Docker)
-docker-compose up -d
-
 # Start the backend server
 cd packages/server
 npm run dev
@@ -85,7 +110,7 @@ npm run dev
 
 The application will be available at:
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:3000
+- Backend API: http://localhost:3002
 
 ## API Endpoints
 
@@ -114,33 +139,46 @@ The application will be available at:
 # Run backend tests
 cd packages/server
 npm test
+npm run test:coverage  # For coverage report
 
 # Run frontend tests
 cd ../client
 npm test
+npm run test:coverage  # For coverage report
 ```
 
-## Deployment
+## Docker Deployment
 
-1. Build the frontend:
+1. Build and start the containers:
 ```bash
-cd packages/client
-npm run build
-```
-
-2. Start the production servers:
-```bash
-# Start the database
 docker-compose up -d
-
-# Start the backend server
-cd packages/server
-npm start
-
-# Serve the frontend (using a static file server)
-cd ../client
-npm run preview
 ```
+
+2. Run database migrations:
+```bash
+docker-compose exec server npx prisma migrate deploy
+```
+
+The application will be available at:
+- Frontend: http://localhost:80 (served by Nginx)
+- Backend API: http://localhost:3000
+
+Note: The Docker setup uses PostgreSQL for the database, while the development setup uses SQLite for simplicity.
+
+## Technology Choices & Assumptions
+
+1. **SQLite over PostgreSQL**: Chosen for development simplicity and zero-config setup. Can be easily switched to PostgreSQL for production.
+2. **Chakra UI**: Selected for rapid development of a modern, responsive UI with built-in dark mode support.
+3. **JWT Authentication**: Implemented for secure user authentication without session management complexity.
+4. **Monorepo Structure**: Used for better code organization and shared dependencies between frontend and backend.
+5. **Nginx in Production**: Used to serve the frontend static files and handle API proxying.
+
+## Challenges Faced
+
+1. **State Management**: Implemented a custom hook-based solution for managing global state without external libraries.
+2. **Real-time Updates**: Added optimistic UI updates for better user experience.
+3. **Type Safety**: Ensured end-to-end type safety between frontend and backend using TypeScript.
+4. **Testing**: Set up comprehensive test suites for both frontend and backend with coverage reporting.
 
 ## Contributing
 
