@@ -90,23 +90,23 @@ The application will be available at:
 ## API Endpoints
 
 ### Authentication
-- POST /api/auth/register - Register a new user
-- POST /api/auth/login - Login user
-- GET /api/auth/me - Get current user
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get current user
 
 ### Links
-- GET /api/links - Get all links (paginated)
-- POST /api/links - Create a new link
-- GET /api/links/:id - Get a specific link
-- PUT /api/links/:id - Update a link
-- DELETE /api/links/:id - Delete a link
-- GET /api/links/search - Search links
+- `GET /api/links` - Get all links (paginated)
+- `POST /api/links` - Create a new link
+- `GET /api/links/:id` - Get a specific link
+- `PUT /api/links/:id` - Update a link
+- `DELETE /api/links/:id` - Delete a link
+- `GET /api/links/search` - Search links
 
 ### Tags
-- GET /api/tags - Get all tags
-- POST /api/tags - Create a new tag
-- PUT /api/tags/:id - Update a tag
-- DELETE /api/tags/:id - Delete a tag
+- `GET /api/tags` - Get all tags
+- `POST /api/tags` - Create a new tag
+- `PUT /api/tags/:id` - Update a tag
+- `DELETE /api/tags/:id` - Delete a tag
 
 ## Testing
 
@@ -152,4 +152,4 @@ npm run preview
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details. 
