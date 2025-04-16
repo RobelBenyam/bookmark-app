@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -14,24 +14,35 @@ import {
   InputLeftElement,
   Icon,
   FormErrorMessage,
+  HStack,
+  Tag as ChakraTag,
+  TagLabel,
+  Text,
+  Spinner,
 } from '@chakra-ui/react';
-import { linksApi, CreateLinkData } from '../services/api';
-import { TagManager } from './TagManager';
-import { LinkIcon, ViewIcon, InfoIcon } from '@chakra-ui/icons';
+import { linksApi, CreateLinkData, Tag, tagsApi } from '../services/api';
+import { LinkIcon, ViewIcon, InfoIcon, AddIcon } from '@chakra-ui/icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LinkFormProps {
   onSuccess: () => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
-export function LinkForm({ onSuccess }: LinkFormProps) {
+export function LinkForm({ onSuccess, selectedTags, onTagsChange }: LinkFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isTagsLoading, setIsTagsLoading] = useState(true);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [newTagName, setNewTagName] = useState('');
   const toast = useToast();
+  const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState<CreateLinkData>({
     url: '',
     title: '',
     description: '',
-    tagIds: [],
+    tagIds: selectedTags,
   });
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');
@@ -40,6 +51,39 @@ export function LinkForm({ onSuccess }: LinkFormProps) {
   const inputBorderColor = useColorModeValue('gray.300', 'gray.600');
   const inputHoverBorderColor = useColorModeValue('blue.400', 'blue.300');
   const inputFocusBorderColor = useColorModeValue('blue.500', 'blue.400');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTags();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      tagIds: selectedTags
+    }));
+  }, [selectedTags]);
+
+  const fetchTags = async () => {
+    setIsTagsLoading(true);
+    try {
+      const response = await tagsApi.getAll();
+      console.log('Fetched tags:', response.data);
+      setTags(response.data || []);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      toast({
+        title: 'Error fetching tags',
+        description: 'Please try refreshing the page',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsTagsLoading(false);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -83,14 +127,64 @@ export function LinkForm({ onSuccess }: LinkFormProps) {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  const handleTagChange = (tagIds: string[]) => {
-    setFormData((prev) => ({ ...prev, tagIds }));
+  const handleTagToggle = (tagId: string) => {
+    const newSelectedTags = selectedTags.includes(tagId)
+      ? selectedTags.filter(id => id !== tagId)
+      : [...selectedTags, tagId];
+    onTagsChange(newSelectedTags);
+  };
+
+  const handleCreateTag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTagName.trim()) return;
+
+    const existingTag = tags.find(tag => 
+      tag.name.toLowerCase() === newTagName.trim().toLowerCase()
+    );
+
+    if (existingTag) {
+      if (!selectedTags.includes(existingTag.id)) {
+        onTagsChange([...selectedTags, existingTag.id]);
+        setNewTagName('');
+        toast({
+          title: 'Tag selected',
+          description: 'The existing tag has been selected',
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      return;
+    }
+
+    try {
+      const response = await tagsApi.create({ name: newTagName.trim() });
+      if (response?.data) {
+        setTags(prevTags => [...prevTags, response.data]);
+        setNewTagName('');
+        onTagsChange([...selectedTags, response.data.id]);
+        toast({
+          title: 'Tag created successfully',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Please try again later';
+      toast({
+        title: 'Error creating tag',
+        description: errorMessage,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -174,10 +268,63 @@ export function LinkForm({ onSuccess }: LinkFormProps) {
                 </InputGroup>
               </FormControl>
 
-              <TagManager
-                selectedTags={formData.tagIds || []}
-                onChange={handleTagChange}
-              />
+              <FormControl>
+                <FormLabel>Tags</FormLabel>
+                <HStack spacing={2} mb={2}>
+                  <Input
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="Enter tag name"
+                    size="md"
+                    bg={inputBg}
+                    borderColor={inputBorderColor}
+                    _hover={{ borderColor: inputHoverBorderColor }}
+                    _focus={{ borderColor: inputFocusBorderColor }}
+                    _focusVisible={{ boxShadow: 'none' }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleCreateTag(e);
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleCreateTag}
+                    colorScheme="blue"
+                    size="md"
+                    leftIcon={<AddIcon />}
+                    isLoading={isLoading}
+                  >
+                    Add Tag
+                  </Button>
+                </HStack>
+                {isTagsLoading ? (
+                  <HStack spacing={2}>
+                    <Spinner size="sm" />
+                    <Text>Loading tags...</Text>
+                  </HStack>
+                ) : (
+                  <HStack spacing={2} wrap="wrap" minH="40px">
+                    {tags.length > 0 ? (
+                      tags.map((tag) => (
+                        <ChakraTag
+                          key={tag.id}
+                          size="md"
+                          borderRadius="full"
+                          variant={selectedTags.includes(tag.id) ? 'solid' : 'outline'}
+                          colorScheme={selectedTags.includes(tag.id) ? 'blue' : 'gray'}
+                          cursor="pointer"
+                          onClick={() => handleTagToggle(tag.id)}
+                        >
+                          <TagLabel>{tag.name}</TagLabel>
+                        </ChakraTag>
+                      ))
+                    ) : (
+                      <Text color="gray.500">No tags available. Create your first tag above.</Text>
+                    )}
+                  </HStack>
+                )}
+              </FormControl>
 
               <Button
                 type="submit"

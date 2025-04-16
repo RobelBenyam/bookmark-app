@@ -7,7 +7,6 @@ import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import LinkList from './components/LinkList';
 import { LinkForm } from './components/LinkForm';
-import { TagManager } from './components/TagManager';
 
 function App() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -62,23 +61,17 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <VStack spacing={8} align="stretch">
-                            <LinkForm onSuccess={() => linkListRef.current?.fetchLinks()} />
+                            <LinkForm 
+                              onSuccess={() => linkListRef.current?.fetchLinks()} 
+                              selectedTags={selectedTags}
+                              onTagsChange={setSelectedTags}
+                            />
                             <Box 
                               borderTopWidth="1px" 
                               borderColor={borderColor} 
                               pt={6}
                             >
-                              <TagManager
-                                selectedTags={selectedTags}
-                                onChange={setSelectedTags}
-                              />
-                            </Box>
-                            <Box 
-                              borderTopWidth="1px" 
-                              borderColor={borderColor} 
-                              pt={6}
-                            >
-                              <LinkList ref={linkListRef} />
+                              <LinkList ref={linkListRef} selectedTags={selectedTags} />
                             </Box>
                           </VStack>
                         </ProtectedRoute>

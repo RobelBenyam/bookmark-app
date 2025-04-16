@@ -13,7 +13,7 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       orderBy: { name: 'asc' },
       include: { links: true },
     });
-    res.json(tags);
+    res.json({ data: tags });
   } catch (error) {
     console.error('Error fetching tags:', error);
     res.status(500).json({ error: 'Failed to fetch tags' });
@@ -31,7 +31,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       },
       include: { links: true },
     });
-    res.status(201).json(tag);
+    res.status(201).json({ data: tag });
   } catch (error: any) {
     console.error('Error creating tag:', error);
     if (error?.code === 'P2002') {
@@ -56,7 +56,7 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
       include: { links: true },
     });
 
-    res.json(tag);
+    res.json({ data: tag });
   } catch (error: any) {
     console.error('Error updating tag:', error);
     if (error?.code === 'P2002') {

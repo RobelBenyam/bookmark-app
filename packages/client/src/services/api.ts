@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authService } from './auth';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3002/api',
+  baseURL: 'http://localhost:3001/api',
 });
 
 // Add a request interceptor
@@ -52,7 +52,7 @@ export interface PaginationParams {
   page?: number;
   limit?: number;
   search?: string;
-  tagId?: string;
+  tagIds?: string[];
 }
 
 export interface PaginatedResponse<T> {

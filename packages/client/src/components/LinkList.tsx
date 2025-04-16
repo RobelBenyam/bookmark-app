@@ -1,5 +1,5 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
-import { Box, VStack, Text, Button, HStack } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, HStack, Badge } from '@chakra-ui/react';
 import { Link } from '../services/api';
 import { linksApi } from '../services/linksApi';
 import LinkListItem from './LinkListItem';
@@ -8,7 +8,11 @@ export interface LinkListRef {
   fetchLinks: () => void;
 }
 
-const LinkList = forwardRef<LinkListRef>((_, ref) => {
+interface LinkListProps {
+  selectedTags?: string[];
+}
+
+const LinkList = forwardRef<LinkListRef, LinkListProps>(({ selectedTags = [] }, ref) => {
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +23,10 @@ const LinkList = forwardRef<LinkListRef>((_, ref) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await linksApi.getAll({ page });
+      const response = await linksApi.getAll({ 
+        page,
+        tagIds: selectedTags.length > 0 ? selectedTags : undefined
+      });
       setLinks(response.data.links);
       setTotalPages(response.data.pagination.totalPages);
     } catch (err) {
@@ -37,14 +44,30 @@ const LinkList = forwardRef<LinkListRef>((_, ref) => {
 
   useEffect(() => {
     fetchLinks();
-  }, [page]);
+  }, [page, selectedTags]);
 
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text color="red.500">{error}</Text>;
-  if (links.length === 0) return <Text>No links found</Text>;
+  if (links.length === 0) {
+    return (
+      <VStack spacing={4}>
+        <Text>No links found</Text>
+        {selectedTags.length > 0 && (
+          <Badge colorScheme="blue" p={2} borderRadius="md">
+            Filtered by {selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''}
+          </Badge>
+        )}
+      </VStack>
+    );
+  }
 
   return (
     <Box>
+      {selectedTags.length > 0 && (
+        <Badge colorScheme="blue" p={2} mb={4} borderRadius="md">
+          Filtered by {selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''}
+        </Badge>
+      )}
       <VStack spacing={4} align="stretch">
         {links.map((link) => (
           <LinkListItem key={link.id} link={link} onUpdate={fetchLinks} />

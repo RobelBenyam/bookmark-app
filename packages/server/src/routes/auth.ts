@@ -9,6 +9,16 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const user = await prisma.user.create({
@@ -26,7 +36,8 @@ router.post('/register', async (req, res) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
     res.status(201).json({ user, token });
   } catch (error) {
-    res.status(400).json({ error: 'Registration failed' });
+    console.error('Registration error:', error);
+    res.status(400).json({ error: 'Registration failed', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
